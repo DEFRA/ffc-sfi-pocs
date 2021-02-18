@@ -1,13 +1,13 @@
 environment: development
-name: ffc-template-node
-namespace: ffc-demo
-workstream: ffc-demo
-image: ffc-template-node
+name: ffc-sfi-pocs
+namespace: ffc-sfi
+workstream: ffc-sfi
+image: ffc-sfi-pocs
 
 labels: {}
 
 containerConfigMap:
-  name: ffc-template-node-config-map
+  name: ffc-sfi-pocs-config-map
 
 deployment:
   restartPolicy: Always
