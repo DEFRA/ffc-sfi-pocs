@@ -4,7 +4,7 @@ spec:
   template:
     metadata:
       annotations:
-        linerd.io/inject: disabled
+        linkerd.io/inject: disabled
     spec:
       containers:
       - {{ include "ffc-helm-library.container" (list . "ffc-sfi-pocs.container") }}
