@@ -1,6 +1,6 @@
 {
   "name": "ffc-sfi-pocs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Microservice for SFI POC work",
   "homepage": "https://github.com/DEFRA/ffc-sfi-pocs",
   "main": "app/index.js",
