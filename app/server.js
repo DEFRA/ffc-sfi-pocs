@@ -1,14 +1,47 @@
 const Hapi = require('@hapi/hapi')
+const inert = require('@hapi/inert')
+const nunjucks = require('nunjucks')
+const vision = require('@hapi/vision')
 
-const server = Hapi.server({
-  port: process.env.PORT
-})
+async function createServer () {
+  const server = Hapi.server({
+    port: process.env.PORT
+  })
 
-const routes = [].concat(
-  require('./routes/healthy'),
-  require('./routes/healthz')
-)
+  await server.register(inert)
+  await server.register(vision)
 
-server.route(routes)
+  const routes = [].concat(
+    require('./routes/assets'),
+    require('./routes/healthy'),
+    require('./routes/healthz'),
+    require('./routes/home')
+  )
 
-module.exports = server
+  server.route(routes)
+
+  server.views({
+    engines: {
+      njk: {
+        compile: (src, options) => {
+          const template = nunjucks.compile(src, options.environment)
+          return context => template.render(context)
+        },
+        prepare: (options, next) => {
+          options.compileOptions.environment = nunjucks.configure([
+            'node_modules/govuk-frontend',
+            ...options.path
+          ])
+          return next()
+        }
+      }
+    },
+    path: [
+      'app/views'
+    ]
+  })
+
+  return server
+}
+
+module.exports = createServer
