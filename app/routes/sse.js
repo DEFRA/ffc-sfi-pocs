@@ -10,9 +10,10 @@ class EventSourceStream extends PassThrough {
   }
 }
 
-function sendMessage (stream, type, eventManager) {
+function sendMessage (stream, type, eventManager, retry) {
   const time = new Date().toLocaleTimeString()
   console.log(`${type} event for userId: ${eventManager.id} at ${time}`)
+  if (type === 'init') { stream.write(`retry: ${retry}\n`) }
   stream.write(`event: ${type}\n`)
   stream.write(`id: ${eventManager.eventId}\n`)
   stream.write(`data: ${time}\n\n`)
@@ -60,10 +61,8 @@ module.exports = [
         eventManagers.get(this.id).removeAllListeners()
       })
 
-      // set retry every 2 seconds, default is 3
-      stream.write(`retry: ${2 * 1000}\n`)
-      stream.write('event: init\n')
-      stream.write('data: initial event sent from server\n\n')
+      sendMessage(stream, 'init', eventManager, 2000)
+
       return h
         .response(stream)
         .type('text/event-stream')
