@@ -7,6 +7,10 @@ async function createServer () {
   const server = Hapi.server({
     mime: {
       override: {
+        // NOTE: setting this content type as not compressible results in a
+        // simplified writing to the stream as there doesn't need to be an
+        // explicit call to flush as per this issue
+        // https://github.com/hapijs/hapi/issues/3599
         'text/event-stream': {
           compressible: false
         }
