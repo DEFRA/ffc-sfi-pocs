@@ -5,6 +5,13 @@ const vision = require('@hapi/vision')
 
 async function createServer () {
   const server = Hapi.server({
+    mime: {
+      override: {
+        'text/event-stream': {
+          compressible: false
+        }
+      }
+    },
     port: process.env.PORT
   })
 
