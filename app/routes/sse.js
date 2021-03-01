@@ -1,27 +1,8 @@
-const { EventEmitter } = require('events')
+const { EventManager } = require('../sse/event-manager')
+const { cache: eventManagers } = require('../sse/event-manager-cache')
 
 // cache of all event managers, keyed by id
-const eventManagers = new Map()
-
-class EventManager extends EventEmitter {
-  constructor (userId) {
-    super()
-    this.userId = userId
-    console.log(`new EventManager created for ${userId}`)
-  }
-
-  ping (e) {
-    e.userId = this.userId
-    setInterval(() => this.emit('ping', e), e.period ?? 1000)
-  }
-
-  trigger (e) {
-    e = e ?? {}
-    e.userId = this.userId
-    this.emit('trigger', e)
-    return true
-  }
-}
+// const eventManagers = new Map()
 
 module.exports = [
   {
