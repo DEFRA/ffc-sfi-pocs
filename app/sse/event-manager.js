@@ -8,14 +8,16 @@ class EventManager extends EventEmitter {
   }
 
   ping (e) {
-    e.userId = this.id
-    setInterval(() => this.emit('ping', e), e.period ?? 1000)
+    setInterval(() => this.emit('ping'), e.period ?? 1000)
   }
 
   trigger (e) {
-    e = e ?? {}
-    e.userId = this.id
-    this.emit('trigger', e)
+    this.emit('trigger')
+    return true
+  }
+
+  end () {
+    this.emit('end')
     return true
   }
 }
