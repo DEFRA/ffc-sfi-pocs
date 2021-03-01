@@ -1,0 +1,41 @@
+{% extends './layouts/layout.njk' %}
+
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      {
+        text: "Home",
+        href: "/"
+      }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">SSE testing ...</h1>
+
+    <script language="javascript" type="text/javascript">
+      console.log('Hi there, just getting the event source ready in the client.')
+      const source = new EventSource('/events?id=' + Math.floor(Math.random() * Math.floor(10)))
+      source.onopen = e => console.log('open event =>', e)
+      source.onerror = e => console.error('error', e.data)
+      source.onmessage = e => console.log('message', e.data)
+
+      source.addEventListener('ping', e => console.log('ping', e.data))
+
+      source.addEventListener('init', e => console.log('init event =>', e))
+
+      source.addEventListener('end', e => {
+        console.log('end event from the server, closing connection', e)
+        source.close()
+      })
+    </script>
+  </div>
+  <div>
+
+</div>
+{% endblock %}
