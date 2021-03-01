@@ -1,9 +1,6 @@
 const { EventManager } = require('../sse/event-manager')
 const { cache: eventManagers } = require('../sse/event-manager-cache')
 
-// cache of all event managers, keyed by id
-// const eventManagers = new Map()
-
 module.exports = [
   {
     method: 'GET',
