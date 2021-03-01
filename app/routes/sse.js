@@ -24,13 +24,13 @@ module.exports = [
       eventManager = new EventManager(id)
 
       eventManager.on('ping', (e) => {
-        const time = Date.now()
+        const time = new Date().toLocaleTimeString()
         console.log(`ping userId: ${e.userId} at ${time}`)
         h.event({ data: time, event: 'ping' })
       })
 
       eventManager.on('trigger', (e) => {
-        const time = Date.now()
+        const time = new Date().toLocaleTimeString()
         console.log(`trigger event for ${e.userId}`)
         h.event({ data: `triggered at ${time}` })
       })
