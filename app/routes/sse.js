@@ -10,6 +10,14 @@ class EventSourceStream extends PassThrough {
   }
 }
 
+function sendMessage (stream, type, eventManager) {
+  const time = new Date().toLocaleTimeString()
+  console.log(`${type} event for userId: ${eventManager.id} at ${time}`)
+  stream.write(`event: ${type}\n`)
+  stream.write(`id: ${eventManager.eventId}\n`)
+  stream.write(`data: ${time}\n\n`)
+}
+
 module.exports = [
   {
     method: 'GET',
@@ -29,28 +37,19 @@ module.exports = [
 
       eventManager = new EventManager(id)
 
+      // ping every 3 seconds
+      eventManager.ping({ period: 3000 })
       eventManager.on('ping', function () {
-        const time = new Date().toLocaleTimeString()
-        console.log(`ping userId: ${this.id} at ${time}`)
-        stream.write('event: ping\n')
-        stream.write(`data: ${time}\n\n`)
+        sendMessage(stream, 'ping', this)
       })
 
       eventManager.on('trigger', function () {
-        const time = new Date().toLocaleTimeString()
-        console.log(`trigger event for ${this.id}`)
-        stream.write('event: trigger\n')
-        stream.write(`data: triggered at ${time}\n\n`)
+        sendMessage(stream, 'trigger', this)
       })
 
-      eventManager.on('end', () => {
-        console.log('end event sent')
-        stream.write('event: end\n')
-        stream.write('data: end\n\n')
+      eventManager.on('end', function () {
+        sendMessage(stream, 'end', this)
       })
-
-      // ping every 3 seconds
-      eventManager.ping({ period: 3000 })
 
       // store event manager for use outside of route
       eventManagers.set(id, eventManager)
@@ -61,8 +60,9 @@ module.exports = [
         eventManagers.get(this.id).removeAllListeners()
       })
 
-      // set retry to happen after 2 seconds
+      // set retry every 2 seconds, default is 3
       stream.write(`retry: ${2 * 1000}\n`)
+      stream.write('event: init\n')
       stream.write('data: initial event sent from server\n\n')
       return h
         .response(stream)
