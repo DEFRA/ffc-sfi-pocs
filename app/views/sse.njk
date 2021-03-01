@@ -1,6 +1,9 @@
 {% extends './layouts/layout.njk' %}
 
 {% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
 
 {% block beforeContent %}
   {{ govukBreadcrumbs({
@@ -16,23 +19,76 @@
 {% block content %}
 <div class="govuk-grid-row">
   <div class="govuk-grid-column-two-thirds">
-    <h1 class="govuk-heading-l">SSE testing ...</h1>
+    <h1 class="govuk-heading-l">Welcome to a little demo of SSE ...</h1>
+
+    {{ govukInsetText({
+    html: 'The inputs on this page provide the ability to create a new EventSource and trigger an event to be sent to an already listening EventSource. The intention is to demonstrate an event can be triggered outside of the initial request lifecycle on the backend.<br><br>Events are logged to the console.'
+    }) }}
+
+    {{ govukInput({
+      label: {
+        text: 'Set up EventSource',
+        classes: 'govuk-label--l',
+        isPageHeading: false
+      },
+      hint: {
+        text: 'Enter an id to be used in the creation of the EventSource'
+      },
+      id: 'eventsId',
+      name: 'eventsId',
+      value: [1,2,3,4,5,6,7,8,9] | random
+    }) }}
+
+    {{ govukButton({
+      href: "javascript:startSSE()",
+      text: 'Create EventSource'
+    }) }}
+
+    {{ govukInput({
+      label: {
+        text: 'Trigger event',
+        classes: 'govuk-label--l',
+        isPageHeading: false
+      },
+      hint: {
+        text: 'Enter the id against which to trigger an event'
+      },
+      id: 'triggerId',
+      name: 'triggerId',
+      value: [1,2,3,4,5,6,7,8,9] | random
+    }) }}
+
+    {{ govukButton({
+      href: "javascript:trigger()",
+      text: 'Trigger event'
+    }) }}
 
     <script language="javascript" type="text/javascript">
-      console.log('Hi there, just getting the event source ready in the client.')
-      const source = new EventSource('/events?id=' + Math.floor(Math.random() * Math.floor(10)))
-      source.onopen = e => console.log('open event =>', e)
-      source.onerror = e => console.error('error', e.data)
-      source.onmessage = e => console.log('message', e.data)
+      console.log('Hi there. Use the buttons in the page to create an EventSource and see the logging...')
 
-      source.addEventListener('ping', e => console.log('ping', e.data))
+      startSSE = () => {
+        const eventsId = document.getElementById('eventsId').value
+        console.log('Creating EventSource with id', eventsId)
+        const source = new EventSource('/events?id=' + eventsId)
+        source.onopen = e => console.log('open event =>', e)
+        source.onerror = e => console.error('error', e.data)
+        source.onmessage = e => console.log('message', e.data)
 
-      source.addEventListener('init', e => console.log('init event =>', e))
+        source.addEventListener('ping', e => console.log('ping for id', eventsId, 'at', e.data))
+        source.addEventListener('init', e => console.log('init event =>', e))
+        source.addEventListener('end', e => {
+          console.log('end event from the server, closing connection', e)
+          source.close()
+        })
+      }
 
-      source.addEventListener('end', e => {
-        console.log('end event from the server, closing connection', e)
-        source.close()
-      })
+      trigger = () => {
+        const triggerId = document.getElementById('triggerId').value
+        console.log('Triggering event for listener', triggerId)
+        const xhr = new XMLHttpRequest()
+        xhr.open('GET', '/trigger?id=' + triggerId, true)
+        xhr.send()
+      }
     </script>
   </div>
   <div>
