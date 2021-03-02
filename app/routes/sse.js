@@ -12,7 +12,7 @@ class EventSourceStream extends PassThrough {
 
 function sendMessage (stream, type, eventManager, retry) {
   const time = new Date().toLocaleTimeString()
-  console.log(`${type} event for userId: ${eventManager.id} at ${time}`)
+  console.log(`event log | time: ${time} | type: ${type.substring(0, 4)} | userId: ${eventManager.id} | count: ${eventManager.eventId}`)
   if (type === 'init') { stream.write(`retry: ${retry}\n`) }
   stream.write(`event: ${type}\n`)
   stream.write(`id: ${eventManager.eventId}\n`)
