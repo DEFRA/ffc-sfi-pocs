@@ -76,21 +76,21 @@
     }) }}
 
     <script language="javascript" type="text/javascript">
-      console.log('Hi there. Use the buttons in the page to create an EventSource and see the logging...')
+      console.log((new Date()).toLocaleTimeString(), ': Hi there. Use the buttons in the page to create an EventSource and see the logging...')
 
       createEventSource = () => {
         const eventsId = document.getElementById('eventsId').value
-        console.log('Creating EventSource with id', eventsId)
+        console.log((new Date()).toLocaleTimeString(), ': Creating EventSource with id', eventsId)
         const source = new EventSource('/events?id=' + eventsId)
-        source.onopen = e => console.log('open event =>', e)
-        source.onerror = e => console.error('error for id', eventsId, e.data)
-        source.onmessage = e => console.log('received message event for id', eventsId, e.data)
+        source.onopen = e => console.log((new Date()).toLocaleTimeString(), ': open event =>', e)
+        source.onerror = e => console.error((new Date()).toLocaleTimeString(), ': error for id', eventsId, e.data)
+        source.onmessage = e => console.log((new Date()).toLocaleTimeString(), ': received message event for id', eventsId, e.data)
 
-        source.addEventListener('trigger',  e => console.log('received trigger event for id', eventsId, e.data))
-        source.addEventListener('ping', e => console.log('received ping event for id', eventsId, 'at', e.data))
-        source.addEventListener('init', e => console.log('init event =>', e))
+        source.addEventListener('trigger',  e => console.log((new Date()).toLocaleTimeString(), ': received trigger event for id', eventsId, e.data))
+        source.addEventListener('ping', e => console.log((new Date()).toLocaleTimeString(), ': received ping event for id', eventsId, 'at', e.data))
+        source.addEventListener('init', e => console.log((new Date()).toLocaleTimeString(), ': init event =>', e))
         source.addEventListener('end', e => {
-          console.log('End event from the server, closing connection', e)
+          console.log((new Date()).toLocaleTimeString(), ': End event from the server, closing connection', e)
           source.close()
         })
         return source
@@ -98,7 +98,7 @@
 
       end = () => {
         const eventsId = document.getElementById('eventsId').value
-        console.log('Ending event for listener', eventsId)
+        console.log((new Date()).toLocaleTimeString(), ': Ending event for listener', eventsId)
         const xhr = new XMLHttpRequest()
         xhr.open('GET', '/end?id=' + eventsId, true)
         xhr.send()
@@ -106,7 +106,7 @@
 
       trigger = () => {
         const triggerId = document.getElementById('triggerId').value
-        console.log('Triggering event for listener', triggerId)
+        console.log((new Date()).toLocaleTimeString(), ': Triggering event for listener', triggerId)
         const xhr = new XMLHttpRequest()
         xhr.open('GET', '/trigger?id=' + triggerId, true)
         xhr.send()
@@ -116,10 +116,10 @@
         try {
           if (source) {
             source.close()
-            console.log('Event source closed')
+            console.log((new Date()).toLocaleTimeString(), ': Event source closed')
           }
         } catch {
-          console.log('No event source to close')
+          console.log((new Date()).toLocaleTimeString(), ': No event source to close')
         }
       }
     </script>
