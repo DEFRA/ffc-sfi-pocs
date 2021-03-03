@@ -1,3 +1,6 @@
 {{- include "ffc-helm-library.azure-ingress" (list . "ffc-sfi-pocs.ingress") -}}
 {{- define "ffc-sfi-pocs.ingress" -}}
+annotations:
+  nginx.ingress.kubernetes.io/eventsource: "true"
+  nginx.ingress.kubernetes.io/proxy-read-timeout: "21600"
 {{- end -}}
