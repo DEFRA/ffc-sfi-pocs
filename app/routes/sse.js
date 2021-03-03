@@ -68,6 +68,7 @@ module.exports = [
         .type('text/event-stream')
         .header('Connection', 'keep-alive')
         .header('Cache-Control', 'no-cache')
+        .header('X-Accel-Buffering', 'no') // prevent NGINX buffering response
     }
   }, {
     method: 'GET',

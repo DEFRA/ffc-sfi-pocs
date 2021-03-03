@@ -2,6 +2,6 @@
 {{- define "ffc-sfi-pocs.ingress" -}}
 metadata:
   annotations:
-    nginx.ingress.kubernetes.io/eventsource: "true"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "21600"
+    nginx.ingress.kubernetes.io/proxy-buffering: "off"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
 {{- end -}}
