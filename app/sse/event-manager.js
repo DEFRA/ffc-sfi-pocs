@@ -1,32 +1,26 @@
 const { EventEmitter } = require('events')
 
 class EventManager extends EventEmitter {
-  constructor (id, stream, pingPeriod = 1000) {
+  constructor (id, stream, pingPeriod) {
     super()
     this.id = id
     this.stream = stream
     this.pingPeriod = pingPeriod
     this.eventId = 1 // rudimentary eventId, a counter incremented on events
     console.log(`new EventManager created for ${id}`)
-    this.ping()
+    if (pingPeriod) { this._ping() }
   }
 
-  ping () {
+  _ping () {
     setInterval(function () {
       this.eventId++
       this.sendMessage('ping')
     }.bind(this), this.pingPeriod)
   }
 
-  trigger () {
-    this.eventId++
-    this.emit('trigger')
-    return true
-  }
-
   end () {
     this.eventId++
-    this.emit('end')
+    this.sendMessage('end')
     return true
   }
 
@@ -40,6 +34,14 @@ class EventManager extends EventEmitter {
   }
 }
 
+class MyEventManager extends EventManager {
+  trigger () {
+    this.eventId++
+    this.sendMessage('trigger')
+    return true
+  }
+}
+
 module.exports = {
-  EventManager
+  MyEventManager
 }

@@ -1,6 +1,6 @@
 const { PassThrough } = require('stream')
 
-const { EventManager } = require('../sse/event-manager')
+const { MyEventManager } = require('../sse/event-manager')
 const { cache: eventManagers } = require('../sse/event-manager-cache')
 
 class EventSourceStream extends PassThrough {
@@ -42,15 +42,7 @@ module.exports = [
         eventManager.removeAllListeners()
       }
 
-      eventManager = new EventManager(id, stream, 3000)
-
-      eventManager.on('trigger', function () {
-        sendMessage(stream, 'trigger', this)
-      })
-
-      eventManager.on('end', function () {
-        sendMessage(stream, 'end', this)
-      })
+      eventManager = new MyEventManager(id, stream, 3000)
 
       // store event manager for use outside of route
       eventManagers.set(id, eventManager)
@@ -77,24 +69,13 @@ module.exports = [
         eventManagers.get(this.id).removeAllListeners()
       })
 
-      // removeAllListeners from existing instance else events stack
-      // alternatively returning the response at this point sends the events to
-      // the old (disconnected client)
       let eventManager = eventManagers.get(id)
       if (eventManager) {
         console.log('existing event manager found, removing all listeners')
         eventManager.removeAllListeners()
       }
 
-      eventManager = new EventManager(id, stream, 3000)
-
-      eventManager.on('trigger', function () {
-        sendMessage(stream, 'trigger', this)
-      })
-
-      eventManager.on('end', function () {
-        sendMessage(stream, 'end', this)
-      })
+      eventManager = new MyEventManager(id, stream)
 
       // store event manager for use outside of route
       eventManagers.set(id, eventManager)
