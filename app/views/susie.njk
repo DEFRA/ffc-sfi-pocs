@@ -1,0 +1,130 @@
+{% extends './layouts/layout.njk' %}
+
+{% from "govuk/components/breadcrumbs/macro.njk" import govukBreadcrumbs %}
+{% from "govuk/components/button/macro.njk" import govukButton %}
+{% from "govuk/components/input/macro.njk" import govukInput %}
+{% from "govuk/components/inset-text/macro.njk" import govukInsetText %}
+
+{% block beforeContent %}
+  {{ govukBreadcrumbs({
+    items: [
+      {
+        text: "Home",
+        href: "/"
+      }
+    ]
+  }) }}
+{% endblock %}
+
+{% block content %}
+<div class="govuk-grid-row">
+  <div class="govuk-grid-column-two-thirds">
+    <h1 class="govuk-heading-l">Welcome to a little demo of SSE ...</h1>
+
+    {% set id = [1,2,3,4,5,6,7,8,9] | random %}
+
+    {{ govukInsetText({
+    html: 'The inputs on this page provide the ability to create a new EventSource and trigger an event to be sent to an already listening EventSource. The intention is to demonstrate an event can be triggered outside of the initial request lifecycle on the backend.<br><br>Events are logged to the console.'
+    }) }}
+
+    {{ govukInput({
+      label: {
+        text: 'Set up EventSource',
+        classes: 'govuk-label--l',
+        isPageHeading: false
+      },
+      hint: {
+        text: 'Enter an id to be used in the creation of the EventSource'
+      },
+      id: 'eventsId',
+      name: 'eventsId',
+      value: id
+    }) }}
+
+    {{ govukButton({
+      href: 'javascript:source = createEventSource()',
+      text: 'Create EventSource'
+    }) }}
+
+    {{ govukButton({
+      href: 'javascript:closeEventSource()',
+      text: 'Close EventSource'
+    }) }}
+
+    {{ govukButton({
+      href: "javascript:end()",
+      text: 'End server and client events'
+    }) }}
+
+    {{ govukInput({
+      label: {
+        text: 'Trigger event',
+        classes: 'govuk-label--l',
+        isPageHeading: false
+      },
+      hint: {
+        text: 'Enter the id against which to trigger an event'
+      },
+      id: 'triggerId',
+      name: 'triggerId',
+      value: id
+    }) }}
+
+    {{ govukButton({
+      href: "javascript:trigger()",
+      text: 'Trigger event'
+    }) }}
+
+    <script language="javascript" type="text/javascript">
+      console.log((new Date()).toLocaleTimeString(), ': Hi there. Use the buttons in the page to create an EventSource and see the logging...')
+
+      createEventSource = () => {
+        const eventsId = document.getElementById('eventsId').value
+        console.log((new Date()).toLocaleTimeString(), ': Creating EventSource with id', eventsId)
+        const source = new EventSource('/susie-events?id=' + eventsId)
+        source.onopen = e => console.log((new Date()).toLocaleTimeString(), ': open event =>', e)
+        source.onerror = e => console.error((new Date()).toLocaleTimeString(), ': error for id', eventsId, e.data)
+        source.onmessage = e => console.log((new Date()).toLocaleTimeString(), ': received message event for id', eventsId, e.data)
+
+        source.addEventListener('trigger',  e => console.log((new Date()).toLocaleTimeString(), ': received trigger event for id', eventsId, e.data))
+        source.addEventListener('ping', e => console.log((new Date()).toLocaleTimeString(), ': received ping event for id', eventsId, 'at', e.data))
+        source.addEventListener('init', e => console.log((new Date()).toLocaleTimeString(), ': init event =>', e))
+        source.addEventListener('end', e => {
+          console.log((new Date()).toLocaleTimeString(), ': End event from the server, closing connection', e)
+          source.close()
+        })
+        return source
+      }
+
+      end = () => {
+        const eventsId = document.getElementById('eventsId').value
+        console.log((new Date()).toLocaleTimeString(), ': Ending event for listener', eventsId)
+        const xhr = new XMLHttpRequest()
+        xhr.open('GET', '/end?id=' + eventsId, true)
+        xhr.send()
+      }
+
+      trigger = () => {
+        const triggerId = document.getElementById('triggerId').value
+        console.log((new Date()).toLocaleTimeString(), ': Triggering event for listener', triggerId)
+        const xhr = new XMLHttpRequest()
+        xhr.open('GET', '/trigger?id=' + triggerId, true)
+        xhr.send()
+      }
+
+      closeEventSource = () => {
+        try {
+          if (source) {
+            source.close()
+            console.log((new Date()).toLocaleTimeString(), ': Event source closed')
+          }
+        } catch {
+          console.log((new Date()).toLocaleTimeString(), ': No event source to close')
+        }
+      }
+    </script>
+  </div>
+  <div>
+
+</div>
+{% endblock %}

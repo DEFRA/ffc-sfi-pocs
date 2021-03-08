@@ -2,6 +2,7 @@ const Hapi = require('@hapi/hapi')
 const inert = require('@hapi/inert')
 const nunjucks = require('nunjucks')
 const vision = require('@hapi/vision')
+const susie = require('susie')
 
 async function createServer () {
   const server = Hapi.server({
@@ -21,6 +22,7 @@ async function createServer () {
 
   await server.register(inert)
   await server.register(vision)
+  await server.register(susie)
 
   const routes = [].concat(
     require('./routes/assets'),
