@@ -10,13 +10,27 @@ class EventSourceStream extends PassThrough {
   }
 }
 
-function sendMessage (stream, type, eventManager, retry) {
-  const time = new Date().toLocaleTimeString()
-  console.log(`event log | time: ${time} | type: ${type.substring(0, 4)} | userId: ${eventManager.id} | count: ${eventManager.eventId}`)
-  if (type === 'init') { stream.write(`retry: ${retry}\n`) }
-  stream.write(`event: ${type}\n`)
-  stream.write(`id: ${eventManager.eventId}\n`)
-  stream.write(`data: ${time}\n\n`)
+function eventManagerCall (h, type) {
+  const id = h.request.query?.id ?? 99
+  console.log(`/${type} hit by: ${id}`)
+
+  let actionSuccess
+  switch (type) {
+    case 'end':
+      const eventManager = eventManagers.get(id)
+      // destroy ends the stream, no client reconnections. 'stream.end()' has the client reconnect
+      eventManager?.stream?.destroy()
+      eventManager?._stopPing()
+      actionSuccess = eventManagers.delete(id) ?? false
+      break
+    case 'trigger':
+      actionSuccess = eventManagers.get(id)?.trigger() ?? false
+      break
+    default:
+      console.error(`Unrecognised call: ${type}`)
+  }
+
+  return h.response(actionSuccess).code(200)
 }
 
 module.exports = [
@@ -27,27 +41,22 @@ module.exports = [
       const id = h.request.query?.id ?? 99
       console.log(`/events hit by: ${id}`)
 
-      const stream = new EventSourceStream(id)
-      stream.on('close', function () {
-        console.log('event source stream closed')
-        eventManagers.get(this.id).removeAllListeners()
-      })
-
-      // removeAllListeners from existing instance else events stack
-      // alternatively returning the response at this point sends the events to
-      // the old (disconnected client)
+      let stream
       let eventManager = eventManagers.get(id)
       if (eventManager) {
-        console.log('existing event manager found, removing all listeners')
-        eventManager.removeAllListeners()
+        stream = eventManager.stream
+      } else {
+        stream = new EventSourceStream(id)
+        stream.on('close', function () {
+          // closing the stream intentionally doesn't do anything on the server
+          console.log('event source stream closed')
+        })
+
+        eventManager = new MyEventManager(id, stream, 3000)
+
+        // store event manager for use outside of route
+        eventManagers.set(id, eventManager)
       }
-
-      eventManager = new MyEventManager(id, stream, 3000)
-
-      // store event manager for use outside of route
-      eventManagers.set(id, eventManager)
-
-      sendMessage(stream, 'init', eventManager, 2000)
 
       return h
         .response(stream)
@@ -63,24 +72,23 @@ module.exports = [
       const id = h.request.query?.id ?? 99
       console.log(`/susie-events hit by: ${id}`)
 
-      const stream = new EventSourceStream(id)
-      stream.on('close', function () {
-        console.log('event source stream closed')
-        eventManagers.get(this.id).removeAllListeners()
-      })
-
+      let stream
       let eventManager = eventManagers.get(id)
       if (eventManager) {
-        console.log('existing event manager found, removing all listeners')
-        eventManager.removeAllListeners()
+        stream = eventManager.stream
+      } else {
+        stream = new EventSourceStream(id)
+        stream.on('close', function () {
+          // closing the stream intentionally doesn't do anything on the server
+          console.log('event source stream closed')
+        })
+
+        eventManager = new MyEventManager(id, stream, 3000)
+
+        // store event manager for use outside of route
+        eventManagers.set(id, eventManager)
       }
 
-      eventManager = new MyEventManager(id, stream)
-
-      // store event manager for use outside of route
-      eventManagers.set(id, eventManager)
-
-      sendMessage(stream, 'init', eventManager, 2000)
       // returning the stream like this will send each write on the stream as
       // an event to the client. the event type can be overriden
       // (https://www.npmjs.com/package/susie#with-a-readable-stream) but this
@@ -103,23 +111,13 @@ module.exports = [
     method: 'GET',
     path: '/end',
     handler: (_, h) => {
-      const id = h.request.query?.id ?? 99
-      console.log(`/end hit by: ${id}`)
-
-      const result = eventManagers.get(id)?.end() ?? false
-
-      return h.response(result).code(200)
+      return eventManagerCall(h, 'end')
     }
   }, {
     method: 'GET',
     path: '/trigger',
     handler: (_, h) => {
-      const id = h.request.query?.id ?? 99
-      console.log(`/trigger hit by: ${id}`)
-
-      const result = eventManagers.get(id)?.trigger() ?? false
-
-      return h.response(result).code(200)
+      return eventManagerCall(h, 'trigger')
     }
   }
 ]

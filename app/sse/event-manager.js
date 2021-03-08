@@ -9,13 +9,20 @@ class EventManager extends EventEmitter {
     this.eventId = 1 // rudimentary eventId, a counter incremented on events
     console.log(`new EventManager created for ${id}`)
     if (pingPeriod) { this._ping() }
+    this.sendMessage('init')
   }
 
   _ping () {
-    setInterval(function () {
+    console.log(`setting up ping every ${this.pingPeriod / 1000} seconds for eventManager with id: ${this.id}`)
+    this._pingIntervalId = setInterval(function () {
       this.eventId++
       this.sendMessage('ping')
     }.bind(this), this.pingPeriod)
+  }
+
+  _stopPing () {
+    console.log(`stopping ping for eventManager with id: ${this.id}, with intervalId: ${this._pingIntervalId}`)
+    clearInterval(this._pingIntervalId)
   }
 
   end () {
