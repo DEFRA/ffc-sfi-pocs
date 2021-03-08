@@ -27,6 +27,12 @@ module.exports = [
       const id = h.request.query?.id ?? 99
       console.log(`/events hit by: ${id}`)
 
+      const stream = new EventSourceStream(id)
+      stream.on('close', function () {
+        console.log('event source stream closed')
+        eventManagers.get(this.id).removeAllListeners()
+      })
+
       // removeAllListeners from existing instance else events stack
       // alternatively returning the response at this point sends the events to
       // the old (disconnected client)
@@ -36,13 +42,7 @@ module.exports = [
         eventManager.removeAllListeners()
       }
 
-      eventManager = new EventManager(id)
-
-      // ping every 3 seconds
-      eventManager.ping({ period: 3000 })
-      eventManager.on('ping', function () {
-        sendMessage(stream, 'ping', this)
-      })
+      eventManager = new EventManager(id, stream, 3000)
 
       eventManager.on('trigger', function () {
         sendMessage(stream, 'trigger', this)
@@ -54,12 +54,6 @@ module.exports = [
 
       // store event manager for use outside of route
       eventManagers.set(id, eventManager)
-
-      const stream = new EventSourceStream(id)
-      stream.on('close', function () {
-        console.log('event source stream closed')
-        eventManagers.get(this.id).removeAllListeners()
-      })
 
       sendMessage(stream, 'init', eventManager, 2000)
 
