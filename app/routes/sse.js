@@ -1,14 +1,6 @@
-const { PassThrough } = require('stream')
-
 const { MyEventManager } = require('../sse/event-manager')
+const { EventSourceStream } = require('../sse/event-source-stream')
 const { cache: eventManagers } = require('../sse/event-manager-cache')
-
-class EventSourceStream extends PassThrough {
-  constructor (id) {
-    super()
-    this.id = id
-  }
-}
 
 function eventManagerCall (h, type) {
   const id = h.request.query?.id ?? 99

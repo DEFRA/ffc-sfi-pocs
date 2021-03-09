@@ -5,7 +5,7 @@ class EventManager extends EventEmitter {
     super()
     this.id = id
     this.stream = stream
-    this.pingPeriod = pingPeriod
+    this.pingPeriod = pingPeriod // milliseconds
     this.eventId = 1 // rudimentary eventId, a counter incremented on events
     console.log(`new EventManager created for ${id}`)
     if (pingPeriod) { this._ping() }
