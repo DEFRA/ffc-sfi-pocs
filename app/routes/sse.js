@@ -5,18 +5,18 @@ const { cache: eventManagers } = require('../sse/event-manager-cache')
 function eventManagerCall (h, type) {
   const id = h.request.query?.id ?? 99
   console.log(`/${type} hit by: ${id}`)
+  const eventManager = eventManagers.get(id)
 
   let actionSuccess
   switch (type) {
     case 'end':
-      const eventManager = eventManagers.get(id)
       // destroy ends the stream, no client reconnections. 'stream.end()' has the client reconnect
       eventManager?.stream?.destroy()
       eventManager?._stopPing()
       actionSuccess = eventManagers.delete(id) ?? false
       break
     case 'trigger':
-      actionSuccess = eventManagers.get(id)?.trigger() ?? false
+      actionSuccess = eventManager?.trigger() ?? false
       break
     default:
       console.error(`Unrecognised call: ${type}`)
