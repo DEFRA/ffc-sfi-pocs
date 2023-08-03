@@ -16,7 +16,7 @@
   "contributors": [],
   "license": "OGL-UK-3.0",
   "dependencies": {
-    "@hapi/hapi": "^20.0.0",
+    "@hapi/hapi": "^20.3.0",
     "@hapi/inert": "^6.0.3",
     "@hapi/vision": "^6.0.1",
     "bunyan": "^1.8.15",
